@@ -1,0 +1,14 @@
+[package]
+name = "wasi_adapter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "wasi_adapter"
+path = "src/main.rs"
+
+[dependencies]
+core_domain = { path = "../core_domain" }
+serde = { workspace = true }
+serde_json = { workspace = true }
