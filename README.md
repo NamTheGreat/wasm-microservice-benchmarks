@@ -12,17 +12,24 @@
 
 ---
 
-## 📌 Overview
+## 📖 About the Project
 
-In modern cloud and edge architectures, microservices are deployed inside encapsulated boundaries to balance **security isolation** against **execution performance**. 
+### 🎯 Research Context & Objectives
+In modern cloud-native and edge computing architectures, microservices are deployed inside encapsulation boundaries to strike a balance between **security isolation** and **execution performance**. 
 
-This repository provides an authoritative, single-codebase empirical testbed comparing three deployment encapsulation paradigms:
-1. **Bare-Metal Native Binary:** High-throughput native execution (`aarch64` / `x86_64`) via Tokio & Axum.
-2. **OCI Linux Container:** Operating system-level namespace and cgroups sandboxing via minimal multi-stage Docker images.
-3. **Standalone WebAssembly (WASI Preview 2):** In-process Software-Fault Isolation (SFI) over linear memory via Wasmtime AOT (`.cwasm`) and Fermyon Spin.
+This repository provides an empirical testbed comparing three prominent deployment encapsulation paradigms under identical workloads:
+1. **Bare-Metal Native Binary:** High-throughput native execution (`aarch64` / `x86_64`) via Tokio & Axum with direct kernel socket management.
+2. **OCI Linux Container:** Operating system-level namespace and cgroups virtualization via minimal multi-stage Docker images (tested on Docker Desktop on macOS).
+3. **Standalone WebAssembly (WASI Preview 2):** In-process Software-Fault Isolation (SFI) over linear memory via Wasmtime AOT (`.cwasm`).
 
-### 🔬 The "Zero Implementation Bias" Principle
-Prior academic benchmarks compare Wasm in Rust against containers running Node.js, Go, or Python, introducing massive runtime and garbage collection bias. In this benchmark, **a single, unified Rust codebase ($C_{\text{app}} = \text{const}$)** is compiled across all three deployment targets. All observed deltas reflect **strictly the cost of the deployment isolation boundary**.
+### ❓ Core Research Questions
+* **RQ1 (Cold-Start Overhead):** What is the exact startup latency distribution when instantiating cold microservices across Native, Wasm, and Container runtimes?
+* **RQ2 (Steady-State Throughput & Tail Latency):** How do system call virtualization and capability checks in WASI impact $p50$, $p90$, and $p99$ latencies under high concurrency (1, 50, and 200 concurrent connections)?
+* **RQ3 (Overhead Mechanisms & Memory):** What architectural mechanisms (per-request instance lifecycles, memory marshalling, runtime engine footprint) govern the steady-state performance differences?
+
+### 🔬 Implementation Notes
+* **Core Logic Sharing:** A shared Rust crate (`core_domain`) defines the data structures and Fibonacci compute logic across targets.
+* **Storage Consideration:** Native and Docker access a local SQLite database (`rusqlite`) serialized via `std::sync::Mutex`. In the Wasm component (`wasi_adapter`), structured item queries return an in-memory collection due to Wasi C-sysroot requirements. This difference is explicitly disclosed in the methodology.
 
 ```
 +----------------------------------------------------------------------------------------------------+
@@ -39,8 +46,7 @@ Prior academic benchmarks compare Wasm in Rust against containers running Node.j
 |   +-------------------------------+                             +------------------------------+   |
 |   |   storage (SQLite Backend)    |                             |      Direct CPU Compute      |   |
 |   |   * WAL mode (Native/Docker)  |                             |   (Fibonacci + black_box)    |   |
-|   |   * DELETE mode (WASI P2)     |                             +------------------------------+   |
-|   +-------------------------------+                                             |                  |
+|   +-------------------------------+                             +------------------------------+   |
 |                   |                                                             |                  |
 |                   +------------------------------+------------------------------+                  |
 |                                                  |                                                 |
@@ -52,6 +58,10 @@ Prior academic benchmarks compare Wasm in Rust against containers running Node.j
 |   |   * Native release binary     |                             |   * wasi:http proxy world    |   |
 |   |   * OCI Docker container      |                             |   * Standalone Wasmtime AOT  |   |
 |   +-------------------------------+                             +------------------------------+   |
+|                                                                                                    |
+|   +--------------------------------------------------------------------------------------------+   |
+|   |                       benchmarks (Harnesses, Automated Sweeps & Raw Data)                  |   |
+|   +--------------------------------------------------------------------------------------------+   |
 +----------------------------------------------------------------------------------------------------+
 ```
 
@@ -65,25 +75,30 @@ Prior academic benchmarks compare Wasm in Rust against containers running Node.j
 ├── Cargo.lock                  # Pinned dependency lockfile
 ├── Makefile                    # Unified build automation
 ├── Dockerfile                  # Multi-stage minimal Bookworm runtime
-├── spin.toml                   # Fermyon Spin component manifest
-├── .cargo/config.toml          # Target runners and compilation settings
-├── core_domain/                # Pure business logic, CRUD requests, CPU compute
+├── core_domain/                # Pure business logic, request types, CPU compute probe
 │   └── src/
 │       ├── lib.rs              # Re-exports domain types
 │       ├── item.rs             # Serde models for Item entities
-│       ├── compute.rs          # Iterative Fibonacci CPU probe (std::hint::black_box)
+│       ├── compute.rs          # Iterative Fibonacci probe (std::hint::black_box)
 │       └── error.rs            # Domain-level error definitions
-├── storage/                    # Embedded relational persistence layer
+├── storage/                    # Relational persistence layer for Native & Docker
 │   └── src/
 │       ├── lib.rs              # Re-exports StorageBackend
-│       ├── backend.rs          # rusqlite wrapper with dual WAL / DELETE journal mode
+│       ├── backend.rs          # rusqlite wrapper with WAL journal mode
 │       └── error.rs            # Storage error handling
 ├── axum_adapter/               # High-concurrency asynchronous HTTP server
 │   └── src/
 │       └── main.rs             # Axum 0.8 REST API (7 endpoints + tracing)
-└── wasi_adapter/               # Component Model HTTP proxy
-    └── src/
-        └── main.rs             # wasm32-wasip2 component implementation
+├── wasi_adapter/               # WebAssembly component (wasi:http/incoming-handler)
+│   └── src/
+│       └── lib.rs              # wasm32-wasip2 component implementation
+└── benchmarks/                 # Automated experimental harness & empirical results
+    ├── bench_cold_start.rs     # Compiled launch-to-first-byte socket probe
+    ├── run_wrk_suite.py        # Automated wrk concurrency sweep harness (1, 50, 200 conns)
+    ├── measure_docker_cold.py  # Container startup polling harness (N=30)
+    ├── measure_memory.py       # Live RSS and cgroup memory profiler
+    ├── analyze_all.py          # Mann-Whitney U & Cliff's delta statistical evaluator
+    └── results/                # Raw per-trial output (.txt and .json)
 ```
 
 ---
@@ -95,11 +110,11 @@ Ensure the following tools are installed on your system:
 | Dependency | Minimum Version | Installation Command |
 |---|:---:|---|
 | **Rust Toolchain** | `1.85+` | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
-| **WASI Targets** | `Preview 2` | `rustup target add wasm32-wasip2 wasm32-wasip1` |
-| **cargo-component**| `0.21+` | `brew install cargo-component` or `cargo install cargo-component` |
+| **WASI Targets** | `Preview 2` | `rustup target add wasm32-wasip2` |
 | **Wasmtime** | `49.0+` | `brew install wasmtime` or `curl https://wasmtime.dev/install.sh \| bash` |
-| **wrk & wrk2** | `4.2+` | `brew install wrk hyperfine` |
+| **wrk** | `4.2+` | `brew install wrk` |
 | **Docker** | `24.0+` | [Docker Desktop / Engine](https://docs.docker.com/get-docker/) |
+| **Python 3** | `3.10+` | With `numpy` and `scipy` for running statistical analysis |
 
 ---
 
@@ -118,10 +133,13 @@ make all
 make build-native
 
 # 2. Minimal multi-stage Docker container
-make build-docker
+docker build -t wasm-bench-server:latest .
 
 # 3. WebAssembly component (wasm32-wasip2)
-make build-wasm
+cargo +1.85.0 build --manifest-path wasi_adapter/Cargo.toml --target wasm32-wasip2 --release
+
+# 4. Ahead-of-Time (AOT) compile Wasm component
+wasmtime compile -O opt-level=2 target/wasm32-wasip2/release/wasi_adapter.wasm -o target/wasi_adapter.cwasm
 ```
 
 ---
@@ -135,18 +153,11 @@ PORT=3000 TARGET_NAME=native ./target/release/axum_adapter
 
 ### Target 2: OCI Docker Container
 ```bash
-docker run --rm -p 3000:3000 \
-  --mount type=tmpfs,destination=/home/appuser/data \
-  wasm-bench-server:latest
+docker run --rm -p 3000:3000 wasm-bench-server:latest
 ```
 
 ### Target 3: Standalone Wasmtime (AOT Compiled)
-Pre-compile the component Ahead-of-Time to `.cwasm` for sub-millisecond execution:
 ```bash
-wasmtime compile -O opt-level=2 \
-  target/wasm32-wasip2/release/wasi_adapter.wasm \
-  -o target/wasi_adapter.cwasm
-
 wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_adapter.cwasm
 ```
 
@@ -154,60 +165,89 @@ wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_ad
 
 ## 📡 REST API Specification
 
-All targets expose an identical set of 7 REST endpoints:
-
 | Method | Endpoint | Description | Workload Characteristic |
 |---|---|---|---|
-| `GET` | `/health` | Service status & self-identifying target | Zero-I/O Network Baseline |
-| `GET` | `/items` | List all records (JSON array) | Multi-row Disk Read & Serialization |
-| `GET` | `/items/:id` | Retrieve single item by ID | B-tree Point Lookup |
-| `POST` | `/items` | Create new item (`{"name":"...","value":42.0}`) | SQLite Write Transaction |
-| `PUT` | `/items/:id` | Update existing item | In-place Database Update |
-| `DELETE` | `/items/:id` | Remove item by ID | B-tree Rebalancing |
-| `GET` | `/compute/:n` | Fibonacci($n$) via `std::hint::black_box()` | Pure CPU-Bound Compute |
+| `GET` | `/health` | Service status & target identification | Zero-I/O Network Baseline |
+| `GET` | `/compute/:n` | Fibonacci($n$) via `std::hint::black_box()` | Minimal Compute Probe ($\approx 1\,\mu\text{s}$ at $n=20$) |
+| `GET` | `/items` | List structured records (JSON array) | Structured Object Serialization |
 
 ---
 
 ## 📊 Empirical Benchmark Results (Apple Silicon M-Series)
 
-Below are the empirical measurements gathered under identical hardware conditions ($N=50$ trials, open-loop scheduling):
+All measurements below are collected from the automated test harness (`benchmarks/`) running on macOS ARM64.
 
 ### 1. Cold-Start Latency (Process Spawn $\to$ First HTTP 200 OK)
-*Measured using compiled socket-polling harness `bench_cold_start`:*
+*Measured via compiled socket-polling harness (`bench_cold_start.rs` and `measure_docker_cold.py`):*
 
-| Deployment Target | Median Cold Start | IQR | Speedup vs Docker |
-|---|:---:|:---:|:---:|
-| **Bare-Metal Native** | **9.63 ms** | 2.03 ms | $40.5\times$ |
-| **Wasmtime AOT (`.cwasm`)** | **29.80 ms** | 8.88 ms | **$13.1\times$** |
-| **OCI Docker Container** | **390.0 ms** | 25.0 ms | Baseline ($1.0\times$) |
+| Deployment Target | Sample Size ($N$) | Median | IQR | Mean $\pm$ StdDev | Min | Max |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Bare-Metal Native** | 50 | **6.65 ms** | 1.50 ms | $6.79 \pm 0.96\,\text{ms}$ | 5.29 ms | 9.17 ms |
+| **Wasmtime AOT (`.cwasm`)** | 50 | **19.28 ms** | 2.90 ms | $19.99 \pm 4.87\,\text{ms}$ | 16.67 ms | 51.14 ms |
+| **OCI Docker Container (macOS)** | 30 | **92.94 ms** | 10.60 ms | $94.96 \pm 8.77\,\text{ms}$ | 80.75 ms | 117.73 ms |
 
-### 2. Steady-State Throughput & Tail Latency (50 Concurrency, 10s Load)
-*Measured via `wrk` across zero-I/O, database CRUD, and CPU compute:*
+*Two-sided Mann-Whitney $U$ test:*  
+* Wasm vs. Native: $U = 2500.0, p = 7.07 \times 10^{-18}$, Cliff's Delta $\delta = 1.000$.  
+* Docker vs. Wasm: $U = 1500.0, p = 9.43 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
 
-| Workload & Target | Throughput (req/s) | Median ($p50$) | $p90$ Latency | $p99$ Tail Latency | Total Requests |
-|---|:---:|:---:|:---:|:---:|:---:|
-| **Native Axum: `/health`** | **184,795 req/s** | **211 µs** | 291 µs | **381 µs (0.38 ms)** | 1,866,439 |
-| **Native Axum: SQLite `/items`** | **132,781 req/s** | **348 µs** | 545 µs | **765 µs (0.76 ms)** | 1,341,126 |
-| **Native Axum: Compute `/compute/20`**| **183,616 req/s** | **212 µs** | 297 µs | **410 µs (0.41 ms)** | 1,854,585 |
-| **Wasmtime AOT: `wasi:http`** | **25,651 req/s** | **1,860 µs** | 2,710 µs | **3,380 µs (3.38 ms)**| 259,093 |
+### 2. Steady-State Concurrency Sweep (Throughput & Latency)
+*Measured via closed-loop `wrk` across 3 independent trials per configuration (5s warmup, 10s sample):*
+
+| Target | Endpoint | Concurrency | Mean Throughput | Median $p50$ | Median $p90$ | Median $p99$ |
+|---|---|:---:|:---:|:---:|:---:|:---:|
+| **Native** | `/health` | 50 | 139,324 req/s | 225.0 µs | 319.0 µs | 495.0 µs |
+| **Native** | `/compute` | 50 | 168,214 req/s | 232.0 µs | 326.0 µs | 443.0 µs |
+| **Native** | `/items` | 50 | 113,056 req/s | 406.0 µs | 638.0 µs | 910.0 µs |
+| **Wasmtime AOT** | `/health` | 50 | 27,191 req/s | 1,750.0 µs | 2,560.0 µs | 3,230.0 µs |
+| **Wasmtime AOT** | `/compute` | 50 | 25,092 req/s | 1,900.0 µs | 2,780.0 µs | 3,500.0 µs |
+| **Wasmtime AOT** | `/items` | 50 | 25,831 req/s | 1,830.0 µs | 2,700.0 µs | 3,540.0 µs |
+| **Docker (macOS)** | `/health` | 50 | 60,839 req/s | 764.0 µs | 1,020.0 µs | 1,420.0 µs |
+| **Docker (macOS)** | `/compute` | 50 | 58,710 req/s | 782.0 µs | 1,050.0 µs | 1,470.0 µs |
+| **Docker (macOS)** | `/items` | 50 | 48,748 req/s | 920.0 µs | 1,410.0 µs | 2,300.0 µs |
+
+### 3. Memory Footprint (RSS) and Artifact Size
+
+| Target | Idle Memory | Under-Load Memory (50 Conn) | Artifact Size | Description |
+|---|:---:|:---:|:---:|---|
+| **Bare-Metal Native** | 4.02 MB | 8.41 MB | 4.5 MB | Standalone Mach-O binary |
+| **Wasmtime AOT** | 8.89 MB | 17.31 MB | 0.43 MB (.cwasm) / 0.16 MB (.wasm) | Pre-compiled component |
+| **OCI Docker Container** | ~1.46 MB (cgroup) | ~3.95 MB (cgroup) | 32.1 MB | Debian slim image |
+
+*Note on Docker memory:* Docker figures represent internal cgroup accounting reported by the Linux engine, excluding the host VM and Docker Desktop baseline.
 
 ---
 
 ## ⚖️ Architectural Decision Heuristics
 
 * **Deploy WebAssembly When:**
-  * **Workloads are ephemeral or bursty:** Wasm's **29.8 ms** cold start eliminates container cold-start stalls in serverless environments.
+  * **Workloads are ephemeral or bursty:** Wasm's **19.28 ms** cold start eliminates container startup stalls in serverless environments.
   * **Executing untrusted multitenant plugins:** In-process SFI and capability validation provide robust security without virtual machine overhead.
-  * **Memory constraints are tight:** Tiny deployable footprints (< 2 MB) allow thousands of instances to pack densely on edge gateways.
-* **Retain Docker Containers When:**
-  * **Processing sustained high-throughput HTTP traffic:** Direct OS kernel socket handling achieves $7\times$ higher throughput and sub-millisecond tail latencies ($p99 < 400\,\mu\text{s}$).
-  * **Requiring raw POSIX / async kernel I/O:** Applications depending on `io_uring` or raw socket primitives remain better suited for container runtimes.
+  * **Binary storage constraints are tight:** Compact `.cwasm` artifacts (428 KB) allow efficient distribution to edge nodes.
+* **Retain Docker Containers or Native Binaries When:**
+  * **Processing sustained high-throughput HTTP traffic:** Direct OS kernel socket handling achieves higher throughput and sub-millisecond tail latencies ($p99 < 500\,\mu\text{s}$).
+  * **Requiring raw POSIX / async kernel I/O:** Applications requiring custom socket options or deep kernel features remain best suited for native or container environments.
+
+---
+
+## 🔬 Reproducing the Benchmarks
+
+To run the complete benchmark suite and verify the statistical analysis:
+
+```bash
+# 1. Run statistical verification over recorded raw data
+python3 benchmarks/analyze_all.py
+
+# 2. Re-run cold start evaluations
+rustc -O benchmarks/bench_cold_start.rs -o benchmarks/bench_cold_start
+benchmarks/bench_cold_start "./target/release/axum_adapter" 3000 50
+
+# 3. Re-run steady-state concurrency sweep
+python3 benchmarks/run_wrk_suite.py native http://127.0.0.1:3000
+```
 
 ---
 
 ## 📖 Citation
-
-If you use this benchmark suite or empirical characterization in academic work, please cite:
 
 ```bibtex
 @article{kalia2026wasmmicroservice,

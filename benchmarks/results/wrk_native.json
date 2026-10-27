@@ -1,0 +1,434 @@
+[
+  {
+    "target": "native",
+    "endpoint": "health",
+    "concurrency": 1,
+    "threads": 1,
+    "mean_rps": 37016.93666666667,
+    "median_p50_us": 19.0,
+    "median_p90_us": 188.0,
+    "median_p99_us": 1430.0,
+    "trials": [
+      {
+        "lat_avg": "207.47us",
+        "lat_stdev": "511.58us",
+        "lat_max": "16.22ms",
+        "rps": 19630.1,
+        "total_requests": 198351,
+        "p50": "27.00us",
+        "p75": "188.00us",
+        "p90": "601.00us",
+        "p99": "2.04ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "93.75us",
+        "lat_stdev": "276.32us",
+        "lat_max": "4.31ms",
+        "rps": 39140.53,
+        "total_requests": 395299,
+        "p50": "19.00us",
+        "p75": "29.00us",
+        "p90": "188.00us",
+        "p99": "1.43ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "20.88us",
+        "lat_stdev": "52.94us",
+        "lat_max": "3.30ms",
+        "rps": 52280.18,
+        "total_requests": 528022,
+        "p50": "17.00us",
+        "p75": "19.00us",
+        "p90": "23.00us",
+        "p99": "61.00us",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "health",
+    "concurrency": 50,
+    "threads": 4,
+    "mean_rps": 139324.18,
+    "median_p50_us": 225.0,
+    "median_p90_us": 319.0,
+    "median_p99_us": 495.0,
+    "trials": [
+      {
+        "lat_avg": "223.24us",
+        "lat_stdev": "72.60us",
+        "lat_max": "2.61ms",
+        "rps": 177077.54,
+        "total_requests": 1788515,
+        "p50": "216.00us",
+        "p75": "257.00us",
+        "p90": "305.00us",
+        "p99": "416.00us",
+        "trial": 1
+      },
+      {
+        "lat_avg": "238.63us",
+        "lat_stdev": "174.77us",
+        "lat_max": "8.66ms",
+        "rps": 173852.05,
+        "total_requests": 1755904,
+        "p50": "225.00us",
+        "p75": "268.00us",
+        "p90": "319.00us",
+        "p99": "495.00us",
+        "trial": 2
+      },
+      {
+        "lat_avg": "0.90ms",
+        "lat_stdev": "1.22ms",
+        "lat_max": "30.65ms",
+        "rps": 67042.95,
+        "total_requests": 672915,
+        "p50": "467.00us",
+        "p75": "1.12ms",
+        "p90": "2.06ms",
+        "p99": "5.25ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "health",
+    "concurrency": 200,
+    "threads": 4,
+    "mean_rps": 164376.04,
+    "median_p50_us": 910.0,
+    "median_p90_us": 1520.0,
+    "median_p99_us": 3260.0,
+    "trials": [
+      {
+        "lat_avg": "1.11ms",
+        "lat_stdev": "761.09us",
+        "lat_max": "16.76ms",
+        "rps": 153033.39,
+        "total_requests": 1534205,
+        "p50": "0.93ms",
+        "p75": "1.33ms",
+        "p90": "1.86ms",
+        "p99": "3.98ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "0.93ms",
+        "lat_stdev": "358.29us",
+        "lat_max": "7.26ms",
+        "rps": 174948.96,
+        "total_requests": 1766981,
+        "p50": "0.91ms",
+        "p75": "1.09ms",
+        "p90": "1.32ms",
+        "p99": "2.01ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "1.01ms",
+        "lat_stdev": "608.63us",
+        "lat_max": "19.11ms",
+        "rps": 165145.77,
+        "total_requests": 1653900,
+        "p50": "0.91ms",
+        "p75": "1.14ms",
+        "p90": "1.52ms",
+        "p99": "3.26ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "compute",
+    "concurrency": 1,
+    "threads": 1,
+    "mean_rps": 57965.37333333333,
+    "median_p50_us": 16.0,
+    "median_p90_us": 18.0,
+    "median_p99_us": 29.0,
+    "trials": [
+      {
+        "lat_avg": "22.11us",
+        "lat_stdev": "123.62us",
+        "lat_max": "5.53ms",
+        "rps": 57432.76,
+        "total_requests": 580036,
+        "p50": "16.00us",
+        "p75": "17.00us",
+        "p90": "19.00us",
+        "p99": "48.00us",
+        "trial": 1
+      },
+      {
+        "lat_avg": "17.24us",
+        "lat_stdev": "41.75us",
+        "lat_max": "3.69ms",
+        "rps": 58506.92,
+        "total_requests": 590906,
+        "p50": "16.00us",
+        "p75": "17.00us",
+        "p90": "18.00us",
+        "p99": "28.00us",
+        "trial": 2
+      },
+      {
+        "lat_avg": "17.35us",
+        "lat_stdev": "27.73us",
+        "lat_max": "1.96ms",
+        "rps": 57956.44,
+        "total_requests": 585340,
+        "p50": "16.00us",
+        "p75": "17.00us",
+        "p90": "18.00us",
+        "p99": "29.00us",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "compute",
+    "concurrency": 50,
+    "threads": 4,
+    "mean_rps": 168213.74666666667,
+    "median_p50_us": 232.0,
+    "median_p90_us": 326.0,
+    "median_p99_us": 443.0,
+    "trials": [
+      {
+        "lat_avg": "232.30us",
+        "lat_stdev": "72.75us",
+        "lat_max": "3.75ms",
+        "rps": 173246.47,
+        "total_requests": 1749711,
+        "p50": "226.00us",
+        "p75": "269.00us",
+        "p90": "317.00us",
+        "p99": "424.00us",
+        "trial": 1
+      },
+      {
+        "lat_avg": "240.37us",
+        "lat_stdev": "102.86us",
+        "lat_max": "6.99ms",
+        "rps": 168058.31,
+        "total_requests": 1697418,
+        "p50": "232.00us",
+        "p75": "277.00us",
+        "p90": "326.00us",
+        "p99": "443.00us",
+        "trial": 2
+      },
+      {
+        "lat_avg": "267.99us",
+        "lat_stdev": "312.35us",
+        "lat_max": "24.70ms",
+        "rps": 163336.46,
+        "total_requests": 1649798,
+        "p50": "239.00us",
+        "p75": "285.00us",
+        "p90": "341.00us",
+        "p99": "0.85ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "compute",
+    "concurrency": 200,
+    "threads": 4,
+    "mean_rps": 163534.07666666666,
+    "median_p50_us": 1070.0,
+    "median_p90_us": 1260.0,
+    "median_p99_us": 1650.0,
+    "trials": [
+      {
+        "lat_avg": "1.05ms",
+        "lat_stdev": "278.56us",
+        "lat_max": "10.01ms",
+        "rps": 163848.11,
+        "total_requests": 1655132,
+        "p50": "1.09ms",
+        "p75": "1.19ms",
+        "p90": "1.26ms",
+        "p99": "1.67ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "1.03ms",
+        "lat_stdev": "239.64us",
+        "lat_max": "4.63ms",
+        "rps": 164436.12,
+        "total_requests": 1661027,
+        "p50": "1.07ms",
+        "p75": "1.18ms",
+        "p90": "1.25ms",
+        "p99": "1.60ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "1.03ms",
+        "lat_stdev": "252.21us",
+        "lat_max": "5.59ms",
+        "rps": 162318.0,
+        "total_requests": 1639624,
+        "p50": "1.07ms",
+        "p75": "1.19ms",
+        "p90": "1.27ms",
+        "p99": "1.65ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "items",
+    "concurrency": 1,
+    "threads": 1,
+    "mean_rps": 47036.95333333333,
+    "median_p50_us": 20.0,
+    "median_p90_us": 24.0,
+    "median_p99_us": 34.0,
+    "trials": [
+      {
+        "lat_avg": "21.91us",
+        "lat_stdev": "46.24us",
+        "lat_max": "3.85ms",
+        "rps": 46484.26,
+        "total_requests": 469494,
+        "p50": "20.00us",
+        "p75": "22.00us",
+        "p90": "24.00us",
+        "p99": "34.00us",
+        "trial": 1
+      },
+      {
+        "lat_avg": "23.92us",
+        "lat_stdev": "94.70us",
+        "lat_max": "5.12ms",
+        "rps": 47129.86,
+        "total_requests": 475995,
+        "p50": "20.00us",
+        "p75": "22.00us",
+        "p90": "24.00us",
+        "p99": "35.00us",
+        "trial": 2
+      },
+      {
+        "lat_avg": "20.88us",
+        "lat_stdev": "23.97us",
+        "lat_max": "2.31ms",
+        "rps": 47496.74,
+        "total_requests": 479711,
+        "p50": "20.00us",
+        "p75": "22.00us",
+        "p90": "23.00us",
+        "p99": "31.00us",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "items",
+    "concurrency": 50,
+    "threads": 4,
+    "mean_rps": 113055.83,
+    "median_p50_us": 406.0,
+    "median_p90_us": 638.0,
+    "median_p99_us": 910.0,
+    "trials": [
+      {
+        "lat_avg": "431.56us",
+        "lat_stdev": "188.19us",
+        "lat_max": "7.07ms",
+        "rps": 110873.35,
+        "total_requests": 1119811,
+        "p50": "417.00us",
+        "p75": "536.00us",
+        "p90": "658.00us",
+        "p99": "0.93ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "418.99us",
+        "lat_stdev": "178.38us",
+        "lat_max": "7.25ms",
+        "rps": 114077.3,
+        "total_requests": 1152247,
+        "p50": "406.00us",
+        "p75": "521.00us",
+        "p90": "637.00us",
+        "p99": "0.90ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "419.36us",
+        "lat_stdev": "189.42us",
+        "lat_max": "6.85ms",
+        "rps": 114216.84,
+        "total_requests": 1153592,
+        "p50": "405.00us",
+        "p75": "520.00us",
+        "p90": "638.00us",
+        "p99": "0.91ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "native",
+    "endpoint": "items",
+    "concurrency": 200,
+    "threads": 4,
+    "mean_rps": 118108.80333333334,
+    "median_p50_us": 1660.0,
+    "median_p90_us": 2640.0,
+    "median_p99_us": 3660.0,
+    "trials": [
+      {
+        "lat_avg": "1.70ms",
+        "lat_stdev": "738.36us",
+        "lat_max": "10.35ms",
+        "rps": 117939.35,
+        "total_requests": 1191311,
+        "p50": "1.66ms",
+        "p75": "2.14ms",
+        "p90": "2.64ms",
+        "p99": "3.66ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "1.68ms",
+        "lat_stdev": "740.15us",
+        "lat_max": "11.39ms",
+        "rps": 118378.82,
+        "total_requests": 1195715,
+        "p50": "1.64ms",
+        "p75": "2.12ms",
+        "p90": "2.62ms",
+        "p99": "3.65ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "1.70ms",
+        "lat_stdev": "756.31us",
+        "lat_max": "10.49ms",
+        "rps": 118008.24,
+        "total_requests": 1191938,
+        "p50": "1.66ms",
+        "p75": "2.14ms",
+        "p90": "2.65ms",
+        "p99": "3.77ms",
+        "trial": 3
+      }
+    ]
+  }
+]

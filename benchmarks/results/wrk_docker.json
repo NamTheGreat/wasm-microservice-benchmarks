@@ -1,0 +1,434 @@
+[
+  {
+    "target": "docker",
+    "endpoint": "health",
+    "concurrency": 1,
+    "threads": 1,
+    "mean_rps": 10659.08,
+    "median_p50_us": 91.0,
+    "median_p90_us": 104.0,
+    "median_p99_us": 173.0,
+    "trials": [
+      {
+        "lat_avg": "93.61us",
+        "lat_stdev": "48.22us",
+        "lat_max": "3.33ms",
+        "rps": 10760.33,
+        "total_requests": 108672,
+        "p50": "90.00us",
+        "p75": "95.00us",
+        "p90": "103.00us",
+        "p99": "173.00us",
+        "trial": 1
+      },
+      {
+        "lat_avg": "96.86us",
+        "lat_stdev": "100.60us",
+        "lat_max": "5.69ms",
+        "rps": 10622.0,
+        "total_requests": 107279,
+        "p50": "91.00us",
+        "p75": "97.00us",
+        "p90": "105.00us",
+        "p99": "178.00us",
+        "trial": 2
+      },
+      {
+        "lat_avg": "97.63us",
+        "lat_stdev": "120.26us",
+        "lat_max": "6.59ms",
+        "rps": 10594.91,
+        "total_requests": 107006,
+        "p50": "92.00us",
+        "p75": "97.00us",
+        "p90": "104.00us",
+        "p99": "155.00us",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "health",
+    "concurrency": 50,
+    "threads": 4,
+    "mean_rps": 60838.82,
+    "median_p50_us": 764.0,
+    "median_p90_us": 1020.0,
+    "median_p99_us": 1420.0,
+    "trials": [
+      {
+        "lat_avg": "772.02us",
+        "lat_stdev": "200.18us",
+        "lat_max": "6.59ms",
+        "rps": 62028.68,
+        "total_requests": 626502,
+        "p50": "751.00us",
+        "p75": "0.88ms",
+        "p90": "1.01ms",
+        "p99": "1.28ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "792.58us",
+        "lat_stdev": "272.72us",
+        "lat_max": "9.80ms",
+        "rps": 60918.04,
+        "total_requests": 615342,
+        "p50": "764.00us",
+        "p75": "0.89ms",
+        "p90": "1.02ms",
+        "p99": "1.42ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "825.20us",
+        "lat_stdev": "518.52us",
+        "lat_max": "21.87ms",
+        "rps": 59569.74,
+        "total_requests": 601655,
+        "p50": "771.00us",
+        "p75": "0.91ms",
+        "p90": "1.06ms",
+        "p99": "1.84ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "health",
+    "concurrency": 200,
+    "threads": 4,
+    "mean_rps": 72894.37666666666,
+    "median_p50_us": 2670.0,
+    "median_p90_us": 3330.0,
+    "median_p99_us": 4920.0,
+    "trials": [
+      {
+        "lat_avg": "2.76ms",
+        "lat_stdev": "836.18us",
+        "lat_max": "23.12ms",
+        "rps": 73118.77,
+        "total_requests": 731270,
+        "p50": "2.67ms",
+        "p75": "3.00ms",
+        "p90": "3.33ms",
+        "p99": "5.29ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "2.79ms",
+        "lat_stdev": "726.90us",
+        "lat_max": "20.93ms",
+        "rps": 71851.21,
+        "total_requests": 725716,
+        "p50": "2.73ms",
+        "p75": "3.06ms",
+        "p90": "3.39ms",
+        "p99": "4.92ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "2.73ms",
+        "lat_stdev": "806.53us",
+        "lat_max": "23.51ms",
+        "rps": 73713.15,
+        "total_requests": 737363,
+        "p50": "2.65ms",
+        "p75": "2.98ms",
+        "p90": "3.31ms",
+        "p99": "4.82ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "compute",
+    "concurrency": 1,
+    "threads": 1,
+    "mean_rps": 10106.85,
+    "median_p50_us": 96.0,
+    "median_p90_us": 111.0,
+    "median_p99_us": 157.0,
+    "trials": [
+      {
+        "lat_avg": "105.04us",
+        "lat_stdev": "131.46us",
+        "lat_max": "5.88ms",
+        "rps": 9980.09,
+        "total_requests": 99805,
+        "p50": "97.00us",
+        "p75": "103.00us",
+        "p90": "113.00us",
+        "p99": "181.00us",
+        "trial": 1
+      },
+      {
+        "lat_avg": "97.39us",
+        "lat_stdev": "23.46us",
+        "lat_max": "1.68ms",
+        "rps": 10226.52,
+        "total_requests": 103286,
+        "p50": "95.00us",
+        "p75": "101.00us",
+        "p90": "109.00us",
+        "p99": "150.00us",
+        "trial": 2
+      },
+      {
+        "lat_avg": "99.73us",
+        "lat_stdev": "71.83us",
+        "lat_max": "5.22ms",
+        "rps": 10113.94,
+        "total_requests": 102151,
+        "p50": "96.00us",
+        "p75": "102.00us",
+        "p90": "111.00us",
+        "p99": "157.00us",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "compute",
+    "concurrency": 50,
+    "threads": 4,
+    "mean_rps": 58709.98333333334,
+    "median_p50_us": 782.0,
+    "median_p90_us": 1050.0,
+    "median_p99_us": 1470.0,
+    "trials": [
+      {
+        "lat_avg": "802.65us",
+        "lat_stdev": "235.87us",
+        "lat_max": "8.22ms",
+        "rps": 59844.46,
+        "total_requests": 604410,
+        "p50": "778.00us",
+        "p75": "0.91ms",
+        "p90": "1.04ms",
+        "p99": "1.36ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "819.22us",
+        "lat_stdev": "329.28us",
+        "lat_max": "10.15ms",
+        "rps": 59249.05,
+        "total_requests": 598442,
+        "p50": "782.00us",
+        "p75": "0.92ms",
+        "p90": "1.05ms",
+        "p99": "1.58ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "842.51us",
+        "lat_stdev": "258.74us",
+        "lat_max": "8.85ms",
+        "rps": 57036.44,
+        "total_requests": 576076,
+        "p50": "816.00us",
+        "p75": "0.96ms",
+        "p90": "1.10ms",
+        "p99": "1.47ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "compute",
+    "concurrency": 200,
+    "threads": 4,
+    "mean_rps": 45607.61000000001,
+    "median_p50_us": 2880.0,
+    "median_p90_us": 3650.0,
+    "median_p99_us": 5910.0,
+    "trials": [
+      {
+        "lat_avg": "2.95ms",
+        "lat_stdev": "751.96us",
+        "lat_max": "21.52ms",
+        "rps": 67952.91,
+        "total_requests": 686375,
+        "p50": "2.88ms",
+        "p75": "3.28ms",
+        "p90": "3.65ms",
+        "p99": "5.03ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "3.19ms",
+        "lat_stdev": "1.97ms",
+        "lat_max": "51.28ms",
+        "rps": 65597.16,
+        "total_requests": 656208,
+        "p50": "2.89ms",
+        "p75": "3.33ms",
+        "p90": "3.89ms",
+        "p99": "10.59ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "2.81ms",
+        "lat_stdev": "1.10ms",
+        "lat_max": "30.84ms",
+        "rps": 3272.76,
+        "total_requests": 702929,
+        "p50": "2.67ms",
+        "p75": "3.02ms",
+        "p90": "3.47ms",
+        "p99": "5.91ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "items",
+    "concurrency": 1,
+    "threads": 1,
+    "mean_rps": 10605.386666666667,
+    "median_p50_us": 93.0,
+    "median_p90_us": 104.0,
+    "median_p99_us": 135.0,
+    "trials": [
+      {
+        "lat_avg": "111.48us",
+        "lat_stdev": "402.37us",
+        "lat_max": "16.77ms",
+        "rps": 10498.57,
+        "total_requests": 106032,
+        "p50": "93.00us",
+        "p75": "98.00us",
+        "p90": "106.00us",
+        "p99": "178.00us",
+        "trial": 1
+      },
+      {
+        "lat_avg": "93.22us",
+        "lat_stdev": "21.58us",
+        "lat_max": "1.79ms",
+        "rps": 10690.72,
+        "total_requests": 107976,
+        "p50": "92.00us",
+        "p75": "98.00us",
+        "p90": "104.00us",
+        "p99": "128.00us",
+        "trial": 2
+      },
+      {
+        "lat_avg": "95.07us",
+        "lat_stdev": "57.82us",
+        "lat_max": "4.23ms",
+        "rps": 10626.87,
+        "total_requests": 107332,
+        "p50": "93.00us",
+        "p75": "98.00us",
+        "p90": "104.00us",
+        "p99": "135.00us",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "items",
+    "concurrency": 50,
+    "threads": 4,
+    "mean_rps": 48747.90333333334,
+    "median_p50_us": 920.0,
+    "median_p90_us": 1410.0,
+    "median_p99_us": 2300.0,
+    "trials": [
+      {
+        "lat_avg": "0.99ms",
+        "lat_stdev": "402.11us",
+        "lat_max": "10.24ms",
+        "rps": 48841.48,
+        "total_requests": 493274,
+        "p50": "0.92ms",
+        "p75": "1.14ms",
+        "p90": "1.41ms",
+        "p99": "2.30ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "1.00ms",
+        "lat_stdev": "397.58us",
+        "lat_max": "10.86ms",
+        "rps": 48628.12,
+        "total_requests": 491150,
+        "p50": "0.93ms",
+        "p75": "1.15ms",
+        "p90": "1.42ms",
+        "p99": "2.29ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "0.99ms",
+        "lat_stdev": "402.11us",
+        "lat_max": "9.35ms",
+        "rps": 48774.11,
+        "total_requests": 492618,
+        "p50": "0.92ms",
+        "p75": "1.14ms",
+        "p90": "1.41ms",
+        "p99": "2.30ms",
+        "trial": 3
+      }
+    ]
+  },
+  {
+    "target": "docker",
+    "endpoint": "items",
+    "concurrency": 200,
+    "threads": 4,
+    "mean_rps": 54700.27666666667,
+    "median_p50_us": 3610.0,
+    "median_p90_us": 4810.0,
+    "median_p99_us": 7110.0,
+    "trials": [
+      {
+        "lat_avg": "3.70ms",
+        "lat_stdev": "1.18ms",
+        "lat_max": "26.03ms",
+        "rps": 54221.78,
+        "total_requests": 547698,
+        "p50": "3.61ms",
+        "p75": "4.14ms",
+        "p90": "4.81ms",
+        "p99": "7.11ms",
+        "trial": 1
+      },
+      {
+        "lat_avg": "3.62ms",
+        "lat_stdev": "1.07ms",
+        "lat_max": "19.11ms",
+        "rps": 55331.89,
+        "total_requests": 553536,
+        "p50": "3.55ms",
+        "p75": "4.09ms",
+        "p90": "4.80ms",
+        "p99": "7.07ms",
+        "trial": 2
+      },
+      {
+        "lat_avg": "3.66ms",
+        "lat_stdev": "1.10ms",
+        "lat_max": "16.47ms",
+        "rps": 54547.16,
+        "total_requests": 550990,
+        "p50": "3.62ms",
+        "p75": "4.16ms",
+        "p90": "4.86ms",
+        "p99": "7.14ms",
+        "trial": 3
+      }
+    ]
+  }
+]

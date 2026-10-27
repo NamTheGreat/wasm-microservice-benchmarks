@@ -4,11 +4,12 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 
-[[bin]]
-name = "wasi_adapter"
-path = "src/main.rs"
-
 [dependencies]
 core_domain = { path = "../core_domain" }
+wasi = "=0.13.1+wasi-0.2.0"
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
