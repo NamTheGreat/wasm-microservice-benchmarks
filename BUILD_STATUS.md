@@ -28,7 +28,7 @@ code/
 │       └── error.rs            # Storage error definitions
 ├── axum_adapter/
 │   └── src/
-│       └── main.rs             # Axum 0.8 HTTP server (7 REST endpoints + tracing)
+│       └── main.rs             # Axum 0.8 HTTP server (benchmarks: /health, /compute/:n, /items + CRUD)
 ├── wasi_adapter/
 │   └── src/
 │       └── lib.rs              # wasm32-wasip2 component exporting wasi:http/incoming-handler

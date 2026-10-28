@@ -1,3 +1,3 @@
-Native: idle=4.02MB, load=8.41MB
-Wasmtime: idle=8.89MB, load=17.31MB
-Docker: idle=1.457MiB / 7.75GiB, load=3.953MiB / 7.75GiB
+Native: idle=4.02MB, load=8.08MB
+Wasmtime: idle=8.92MB, load=16.44MB
+Docker: idle=1.422MiB / 7.75GiB, load=3.492MiB / 7.75GiB

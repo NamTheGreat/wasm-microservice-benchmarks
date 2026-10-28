@@ -88,7 +88,7 @@ This repository provides an empirical testbed comparing three prominent deployme
 │       └── error.rs            # Storage error handling
 ├── axum_adapter/               # High-concurrency asynchronous HTTP server
 │   └── src/
-│       └── main.rs             # Axum 0.8 REST API (7 endpoints + tracing)
+│       └── main.rs             # Axum 0.8 REST API (benchmarks: /health, /compute/:n, /items + CRUD)
 ├── wasi_adapter/               # WebAssembly component (wasi:http/incoming-handler)
 │   └── src/
 │       └── lib.rs              # wasm32-wasip2 component implementation
@@ -171,6 +171,8 @@ wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_ad
 | `GET` | `/compute/:n` | Fibonacci($n$) via `std::hint::black_box()` | Minimal Compute Probe ($\approx 1\,\mu\text{s}$ at $n=20$) |
 | `GET` | `/items` | List structured records (JSON array) | Structured Object Serialization |
 
+*Note on endpoints:* While `axum_adapter` implements full CRUD handlers (`POST /items`, `GET /items/:id`, `PUT /items/:id`, `DELETE /items/:id`) for microservice realism, the empirical evaluation focuses on `/health`, `/compute/:n`, and `/items` to maintain strict functional equivalence across all three execution targets.
+
 ---
 
 ## 📊 Empirical Benchmark Results (Apple Silicon M-Series)
@@ -178,17 +180,19 @@ wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_ad
 All measurements below are collected from the automated test harness (`benchmarks/`) running on macOS ARM64.
 
 ### 1. Cold-Start Latency (Process Spawn $\to$ First HTTP 200 OK)
-*Measured via compiled socket-polling harness (`bench_cold_start.rs` and `measure_docker_cold.py`):*
+*Measured via compiled socket-polling harness (`bench_cold_start.rs` for Native and Wasm) and container daemon polling (`measure_docker_cold.py` for Docker):*
 
 | Deployment Target | Sample Size ($N$) | Median | IQR | Mean $\pm$ StdDev | Min | Max |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Bare-Metal Native** | 50 | **6.65 ms** | 1.50 ms | $6.79 \pm 0.96\,\text{ms}$ | 5.29 ms | 9.17 ms |
+| **Bare-Metal Native** | 50 | **15.49 ms** | 1.15 ms | $15.88 \pm 4.74\,\text{ms}$ | 8.65 ms | 46.27 ms |
 | **Wasmtime AOT (`.cwasm`)** | 50 | **19.28 ms** | 2.90 ms | $19.99 \pm 4.87\,\text{ms}$ | 16.67 ms | 51.14 ms |
-| **OCI Docker Container (macOS)** | 30 | **92.94 ms** | 10.60 ms | $94.96 \pm 8.77\,\text{ms}$ | 80.75 ms | 117.73 ms |
+| **OCI Docker Container (macOS)** | 30 | **107.39 ms** | 6.34 ms | $106.94 \pm 5.33\,\text{ms}$ | 97.62 ms | 118.85 ms |
 
 *Two-sided Mann-Whitney $U$ test:*  
-* Wasm vs. Native: $U = 2500.0, p = 7.07 \times 10^{-18}$, Cliff's Delta $\delta = 1.000$.  
+* Wasm vs. Native: $U = 2406.0, p = 1.64 \times 10^{-15}$, Cliff's Delta $\delta = 0.925$.  
 * Docker vs. Wasm: $U = 1500.0, p = 9.43 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
+
+*Note on cold starts:* Native and Docker cold-start latencies reflect the auto-seeded storage build (where the backend checks/seeds 10 initial SQLite items on startup before serving requests). Docker measurements utilize `measure_docker_cold.py` polling via `urllib.request` over the Docker daemon lifecycle.
 
 ### 2. Steady-State Concurrency Sweep (Throughput & Latency)
 *Measured via closed-loop `wrk` across 3 independent trials per configuration (5s warmup, 10s sample):*
@@ -197,13 +201,13 @@ All measurements below are collected from the automated test harness (`benchmark
 |---|---|:---:|:---:|:---:|:---:|:---:|
 | **Native** | `/health` | 50 | 139,324 req/s | 225.0 µs | 319.0 µs | 495.0 µs |
 | **Native** | `/compute` | 50 | 168,214 req/s | 232.0 µs | 326.0 µs | 443.0 µs |
-| **Native** | `/items` | 50 | 113,056 req/s | 406.0 µs | 638.0 µs | 910.0 µs |
+| **Native** | `/items` | 50 | 92,337 req/s | 515.0 µs | 780.0 µs | 1,060.0 µs |
 | **Wasmtime AOT** | `/health` | 50 | 27,191 req/s | 1,750.0 µs | 2,560.0 µs | 3,230.0 µs |
 | **Wasmtime AOT** | `/compute` | 50 | 25,092 req/s | 1,900.0 µs | 2,780.0 µs | 3,500.0 µs |
 | **Wasmtime AOT** | `/items` | 50 | 25,831 req/s | 1,830.0 µs | 2,700.0 µs | 3,540.0 µs |
 | **Docker (macOS)** | `/health` | 50 | 60,839 req/s | 764.0 µs | 1,020.0 µs | 1,420.0 µs |
 | **Docker (macOS)** | `/compute` | 50 | 58,710 req/s | 782.0 µs | 1,050.0 µs | 1,470.0 µs |
-| **Docker (macOS)** | `/items` | 50 | 48,748 req/s | 920.0 µs | 1,410.0 µs | 2,300.0 µs |
+| **Docker (macOS)** | `/items` | 50 | 36,493 req/s | 1,250.0 µs | 2,000.0 µs | 3,000.0 µs |
 
 ### 3. Memory Footprint (RSS) and Artifact Size
 
@@ -213,7 +217,7 @@ All measurements below are collected from the automated test harness (`benchmark
 | **Wasmtime AOT** | 8.89 MB | 17.31 MB | 0.43 MB (.cwasm) / 0.16 MB (.wasm) | Pre-compiled component |
 | **OCI Docker Container** | ~1.46 MB (cgroup) | ~3.95 MB (cgroup) | 32.1 MB | Debian slim image |
 
-*Note on Docker memory:* Docker figures represent internal cgroup accounting reported by the Linux engine, excluding the host VM and Docker Desktop baseline.
+*Note on memory measurements:* Native and Wasmtime figures represent process Resident Set Size (RSS). Docker figures represent internal cgroup accounting (`docker stats`) reported by the Linux container engine, excluding the host hypervisor and Docker Desktop baseline. "Under-Load Memory" is sampled immediately after the sustained 50-connection `wrk` load test concludes on `/health` (quiescent peak footprint).
 
 ---
 

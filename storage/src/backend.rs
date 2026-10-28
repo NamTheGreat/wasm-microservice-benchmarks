@@ -37,6 +37,17 @@ impl StorageBackend {
             CREATE INDEX IF NOT EXISTS idx_items_name ON items(name);",
         )?;
 
+        // Ensure 10 baseline seeded items exist for consistent multi-target benchmarking
+        let count: i64 = conn.query_row("SELECT count(*) FROM items", [], |r| r.get(0))?;
+        if count == 0 {
+            for i in 1..=10 {
+                conn.execute(
+                    "INSERT INTO items (id, name, value, created_at) VALUES (?1, ?2, ?3, '2026-10-09T00:00:00Z')",
+                    params![i as i64, format!("item-{}", i), (i as f64) * 10.0],
+                )?;
+            }
+        }
+
         Ok(Self { conn })
     }
 

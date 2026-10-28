@@ -1,4 +1,4 @@
-.PHONY: all build-native build-docker build-wasm build-spin clean
+.PHONY: all build-native build-docker build-wasm clean
 
 all: build-native build-wasm
 
@@ -10,9 +10,6 @@ build-docker:
 
 build-wasm:
 	cargo build --release -p wasi_adapter --target wasm32-wasip2
-
-build-spin:
-	spin build
 
 clean:
 	cargo clean

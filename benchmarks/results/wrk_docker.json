@@ -291,144 +291,27 @@
     "target": "docker",
     "endpoint": "items",
     "concurrency": 1,
-    "threads": 1,
-    "mean_rps": 10605.386666666667,
-    "median_p50_us": 93.0,
-    "median_p90_us": 104.0,
-    "median_p99_us": 135.0,
-    "trials": [
-      {
-        "lat_avg": "111.48us",
-        "lat_stdev": "402.37us",
-        "lat_max": "16.77ms",
-        "rps": 10498.57,
-        "total_requests": 106032,
-        "p50": "93.00us",
-        "p75": "98.00us",
-        "p90": "106.00us",
-        "p99": "178.00us",
-        "trial": 1
-      },
-      {
-        "lat_avg": "93.22us",
-        "lat_stdev": "21.58us",
-        "lat_max": "1.79ms",
-        "rps": 10690.72,
-        "total_requests": 107976,
-        "p50": "92.00us",
-        "p75": "98.00us",
-        "p90": "104.00us",
-        "p99": "128.00us",
-        "trial": 2
-      },
-      {
-        "lat_avg": "95.07us",
-        "lat_stdev": "57.82us",
-        "lat_max": "4.23ms",
-        "rps": 10626.87,
-        "total_requests": 107332,
-        "p50": "93.00us",
-        "p75": "98.00us",
-        "p90": "104.00us",
-        "p99": "135.00us",
-        "trial": 3
-      }
-    ]
+    "mean_rps": 9625.806666666667,
+    "median_p50_us": 102.0,
+    "median_p90_us": 114.0,
+    "median_p99_us": 168.0
   },
   {
     "target": "docker",
     "endpoint": "items",
     "concurrency": 50,
-    "threads": 4,
-    "mean_rps": 48747.90333333334,
-    "median_p50_us": 920.0,
-    "median_p90_us": 1410.0,
-    "median_p99_us": 2300.0,
-    "trials": [
-      {
-        "lat_avg": "0.99ms",
-        "lat_stdev": "402.11us",
-        "lat_max": "10.24ms",
-        "rps": 48841.48,
-        "total_requests": 493274,
-        "p50": "0.92ms",
-        "p75": "1.14ms",
-        "p90": "1.41ms",
-        "p99": "2.30ms",
-        "trial": 1
-      },
-      {
-        "lat_avg": "1.00ms",
-        "lat_stdev": "397.58us",
-        "lat_max": "10.86ms",
-        "rps": 48628.12,
-        "total_requests": 491150,
-        "p50": "0.93ms",
-        "p75": "1.15ms",
-        "p90": "1.42ms",
-        "p99": "2.29ms",
-        "trial": 2
-      },
-      {
-        "lat_avg": "0.99ms",
-        "lat_stdev": "402.11us",
-        "lat_max": "9.35ms",
-        "rps": 48774.11,
-        "total_requests": 492618,
-        "p50": "0.92ms",
-        "p75": "1.14ms",
-        "p90": "1.41ms",
-        "p99": "2.30ms",
-        "trial": 3
-      }
-    ]
+    "mean_rps": 36493.12333333333,
+    "median_p50_us": 1250.0,
+    "median_p90_us": 2000.0,
+    "median_p99_us": 3000.0
   },
   {
     "target": "docker",
     "endpoint": "items",
     "concurrency": 200,
-    "threads": 4,
-    "mean_rps": 54700.27666666667,
-    "median_p50_us": 3610.0,
-    "median_p90_us": 4810.0,
-    "median_p99_us": 7110.0,
-    "trials": [
-      {
-        "lat_avg": "3.70ms",
-        "lat_stdev": "1.18ms",
-        "lat_max": "26.03ms",
-        "rps": 54221.78,
-        "total_requests": 547698,
-        "p50": "3.61ms",
-        "p75": "4.14ms",
-        "p90": "4.81ms",
-        "p99": "7.11ms",
-        "trial": 1
-      },
-      {
-        "lat_avg": "3.62ms",
-        "lat_stdev": "1.07ms",
-        "lat_max": "19.11ms",
-        "rps": 55331.89,
-        "total_requests": 553536,
-        "p50": "3.55ms",
-        "p75": "4.09ms",
-        "p90": "4.80ms",
-        "p99": "7.07ms",
-        "trial": 2
-      },
-      {
-        "lat_avg": "3.66ms",
-        "lat_stdev": "1.10ms",
-        "lat_max": "16.47ms",
-        "rps": 54547.16,
-        "total_requests": 550990,
-        "p50": "3.62ms",
-        "p75": "4.16ms",
-        "p90": "4.86ms",
-        "p99": "7.14ms",
-        "trial": 3
-      }
-    ]
+    "mean_rps": 35579.056666666664,
+    "median_p50_us": 5510.0,
+    "median_p90_us": 8790.0,
+    "median_p99_us": 12290.0
   }
 ]

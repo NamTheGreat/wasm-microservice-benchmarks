@@ -291,144 +291,27 @@
     "target": "native",
     "endpoint": "items",
     "concurrency": 1,
-    "threads": 1,
-    "mean_rps": 47036.95333333333,
-    "median_p50_us": 20.0,
-    "median_p90_us": 24.0,
-    "median_p99_us": 34.0,
-    "trials": [
-      {
-        "lat_avg": "21.91us",
-        "lat_stdev": "46.24us",
-        "lat_max": "3.85ms",
-        "rps": 46484.26,
-        "total_requests": 469494,
-        "p50": "20.00us",
-        "p75": "22.00us",
-        "p90": "24.00us",
-        "p99": "34.00us",
-        "trial": 1
-      },
-      {
-        "lat_avg": "23.92us",
-        "lat_stdev": "94.70us",
-        "lat_max": "5.12ms",
-        "rps": 47129.86,
-        "total_requests": 475995,
-        "p50": "20.00us",
-        "p75": "22.00us",
-        "p90": "24.00us",
-        "p99": "35.00us",
-        "trial": 2
-      },
-      {
-        "lat_avg": "20.88us",
-        "lat_stdev": "23.97us",
-        "lat_max": "2.31ms",
-        "rps": 47496.74,
-        "total_requests": 479711,
-        "p50": "20.00us",
-        "p75": "22.00us",
-        "p90": "23.00us",
-        "p99": "31.00us",
-        "trial": 3
-      }
-    ]
+    "mean_rps": 38509.02333333334,
+    "median_p50_us": 24.0,
+    "median_p90_us": 29.0,
+    "median_p99_us": 43.0
   },
   {
     "target": "native",
     "endpoint": "items",
     "concurrency": 50,
-    "threads": 4,
-    "mean_rps": 113055.83,
-    "median_p50_us": 406.0,
-    "median_p90_us": 638.0,
-    "median_p99_us": 910.0,
-    "trials": [
-      {
-        "lat_avg": "431.56us",
-        "lat_stdev": "188.19us",
-        "lat_max": "7.07ms",
-        "rps": 110873.35,
-        "total_requests": 1119811,
-        "p50": "417.00us",
-        "p75": "536.00us",
-        "p90": "658.00us",
-        "p99": "0.93ms",
-        "trial": 1
-      },
-      {
-        "lat_avg": "418.99us",
-        "lat_stdev": "178.38us",
-        "lat_max": "7.25ms",
-        "rps": 114077.3,
-        "total_requests": 1152247,
-        "p50": "406.00us",
-        "p75": "521.00us",
-        "p90": "637.00us",
-        "p99": "0.90ms",
-        "trial": 2
-      },
-      {
-        "lat_avg": "419.36us",
-        "lat_stdev": "189.42us",
-        "lat_max": "6.85ms",
-        "rps": 114216.84,
-        "total_requests": 1153592,
-        "p50": "405.00us",
-        "p75": "520.00us",
-        "p90": "638.00us",
-        "p99": "0.91ms",
-        "trial": 3
-      }
-    ]
+    "mean_rps": 92336.51666666666,
+    "median_p50_us": 515.0,
+    "median_p90_us": 780.0,
+    "median_p99_us": 1060.0
   },
   {
     "target": "native",
     "endpoint": "items",
     "concurrency": 200,
-    "threads": 4,
-    "mean_rps": 118108.80333333334,
-    "median_p50_us": 1660.0,
-    "median_p90_us": 2640.0,
-    "median_p99_us": 3660.0,
-    "trials": [
-      {
-        "lat_avg": "1.70ms",
-        "lat_stdev": "738.36us",
-        "lat_max": "10.35ms",
-        "rps": 117939.35,
-        "total_requests": 1191311,
-        "p50": "1.66ms",
-        "p75": "2.14ms",
-        "p90": "2.64ms",
-        "p99": "3.66ms",
-        "trial": 1
-      },
-      {
-        "lat_avg": "1.68ms",
-        "lat_stdev": "740.15us",
-        "lat_max": "11.39ms",
-        "rps": 118378.82,
-        "total_requests": 1195715,
-        "p50": "1.64ms",
-        "p75": "2.12ms",
-        "p90": "2.62ms",
-        "p99": "3.65ms",
-        "trial": 2
-      },
-      {
-        "lat_avg": "1.70ms",
-        "lat_stdev": "756.31us",
-        "lat_max": "10.49ms",
-        "rps": 118008.24,
-        "total_requests": 1191938,
-        "p50": "1.66ms",
-        "p75": "2.14ms",
-        "p90": "2.65ms",
-        "p99": "3.77ms",
-        "trial": 3
-      }
-    ]
+    "mean_rps": 90282.22333333333,
+    "median_p50_us": 2160.0,
+    "median_p90_us": 3450.0,
+    "median_p99_us": 4910.0
   }
 ]
