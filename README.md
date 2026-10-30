@@ -180,21 +180,21 @@ wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_ad
 All measurements below are collected from the automated test harness (`benchmarks/`) running on macOS ARM64.
 
 ### 1. Cold-Start Latency (Process Spawn $\to$ First HTTP 200 OK)
-*Measured via compiled socket-polling harness (`bench_cold_start.rs` for Native and Wasm) and container daemon polling (`measure_docker_cold.py` for Docker) across a unified single-session run:*
+*Measured via automated round-robin interleaved harness (`benchmarks/run_cold_interleaved.py`) executing Fresh DB, Existing DB, Wasmtime AOT, and Docker in each round to eliminate order and thermal bias:*
 
 | Deployment Target | Sample Size ($N$) | Median | IQR | Mean $\pm$ StdDev | Min | Max |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Bare-Metal Native (Fresh DB)** | 50 | **8.46 ms** | 0.71 ms | $9.87 \pm 7.63\,\text{ms}$ | 6.39 ms | 61.66 ms |
-| **Bare-Metal Native (Existing DB)** | 50 | **11.25 ms** | 1.79 ms | $11.76 \pm 4.49\,\text{ms}$ | 9.06 ms | 41.88 ms |
-| **Wasmtime AOT (`.cwasm`)** | 50 | **20.56 ms** | 0.39 ms | $21.13 \pm 4.95\,\text{ms}$ | 16.84 ms | 55.01 ms |
-| **OCI Docker Container (macOS)** | 30 | **98.56 ms** | 8.29 ms | $102.98 \pm 12.51\,\text{ms}$ | 90.19 ms | 142.83 ms |
+| **Bare-Metal Native (Fresh DB)** | 50 | **9.26 ms** | 2.72 ms | $8.98 \pm 2.37\,\text{ms}$ | 5.92 ms | 21.57 ms |
+| **Bare-Metal Native (Existing DB)** | 50 | **10.97 ms** | 4.11 ms | $10.58 \pm 5.13\,\text{ms}$ | 5.89 ms | 42.70 ms |
+| **Wasmtime AOT (`.cwasm`)** | 50 | **24.59 ms** | 2.36 ms | $26.06 \pm 7.53\,\text{ms}$ | 20.70 ms | 56.39 ms |
+| **OCI Docker Container (macOS)** | 30 | **96.80 ms** | 8.50 ms | $98.22 \pm 9.49\,\text{ms}$ | 83.32 ms | 137.62 ms |
 
 *Two-sided Mann-Whitney $U$ test:*  
-* Wasm vs. Native (Fresh DB): $U = 2449.0, p = 1.43 \times 10^{-16}$, Cliff's Delta $\delta = 0.959$.  
-* Wasm vs. Native (Existing DB): $U = 2451.0, p = 1.27 \times 10^{-16}$, Cliff's Delta $\delta = 0.961$.  
-* Docker vs. Wasm: $U = 1500.0, p = 9.42 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
+* Wasm vs. Native (Fresh DB): $U = 2498.0, p = 7.97 \times 10^{-18}$, Cliff's Delta $\delta = 0.998$.  
+* Wasm vs. Native (Existing DB): $U = 2453.0, p = 1.13 \times 10^{-16}$, Cliff's Delta $\delta = 0.962$.  
+* Docker vs. Wasm: $U = 1500.0, p = 9.43 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
 
-*Note on cold starts:* All targets were benchmarked back-to-back in the same session. For Native execution, we explicitly isolate both database startup states: *Fresh DB* (database unlinked before launch; schema created and 10 baseline items inserted in a single transaction on boot) and *Existing DB* (database already created and seeded prior to launch). Wasm serves an in-memory collection without local SQLite overhead. Docker cold starts measure fresh container launch via `measure_docker_cold.py` polling via `urllib.request` over the Docker daemon lifecycle.
+*Note on cold starts:* All targets were benchmarked in a unified interleaved loop (`benchmarks/run_cold_interleaved.py`). Across multiple sessions, Docker is consistently **$4.0\times$ to $4.8\times$ slower** than Wasmtime AOT, while Wasmtime operates within **$1.5\times$ to $2.9\times$** of native execution depending on session load and database state. For Native execution, we isolate both startup states: *Fresh DB* (database unlinked before launch; schema created and 10 baseline items inserted in a single transaction on boot) and *Existing DB* (database already created and seeded prior to launch). Wasm serves an in-memory collection because embedded SQLite requires POSIX threading and file locking primitives unavailable under `wasm32-wasip2`. Docker cold starts measure fresh container launch via Docker daemon lifecycle.
 
 ### 2. Steady-State Concurrency Sweep (Throughput & Latency)
 *Measured via closed-loop `wrk` across 3 independent trials per configuration (5s warmup, 10s sample):*
@@ -226,7 +226,7 @@ All measurements below are collected from the automated test harness (`benchmark
 ## ⚖️ Architectural Decision Heuristics
 
 * **Deploy WebAssembly When:**
-  * **Workloads are ephemeral or bursty:** Wasm's **20.56 ms** cold start eliminates container startup stalls in serverless environments.
+  * **Workloads are ephemeral or bursty:** Wasm's sub-25 ms cold start eliminates container startup stalls in serverless environments.
   * **Executing untrusted multitenant plugins:** In-process SFI and capability validation provide robust security without virtual machine overhead.
   * **Binary storage constraints are tight:** Compact `.cwasm` artifacts (428 KB) allow efficient distribution to edge nodes.
 * **Retain Docker Containers or Native Binaries When:**
@@ -243,9 +243,8 @@ To run the complete benchmark suite and verify the statistical analysis:
 # 1. Run statistical verification over recorded raw data
 python3 benchmarks/analyze_all.py
 
-# 2. Re-run cold start evaluations
-rustc -O benchmarks/bench_cold_start.rs -o benchmarks/bench_cold_start
-benchmarks/bench_cold_start "./target/release/axum_adapter" 3000 50
+# 2. Re-run unified interleaved cold start evaluation across all targets
+python3 benchmarks/run_cold_interleaved.py
 
 # 3. Re-run steady-state concurrency sweep
 python3 benchmarks/run_wrk_suite.py native http://127.0.0.1:3000
