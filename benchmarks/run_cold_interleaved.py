@@ -1,81 +1,108 @@
 #!/usr/bin/env python3
 """
-Automated interleaved cold-start latency benchmark harness.
-Executes trials in round-robin interleaved fashion across:
-1. Native (Fresh DB: unlinks bench.db before spawn, creates schema and seeds 10 items)
-2. Native (Existing DB: opens pre-seeded bench.db from step 1 without seeding)
+Automated randomized-order interleaved cold-start latency benchmark harness.
+Executes trials across all 4 targets in randomized order per round (N=50 rounds):
+1. Native (Fresh DB: unlinks bench_fresh.db before spawn, creates schema and seeds 10 items)
+2. Native (Existing DB: opens pre-seeded, cleanly checkpointed bench_seeded.db without re-seeding)
 3. Standalone Wasmtime AOT (.cwasm component)
-4. OCI Docker Container (for N=30 rounds)
+4. OCI Docker Container (N=50 rounds, with container teardown settling)
 
-This eliminates session drift, CPU thermal bias, and ordering artifacts.
+Randomizing the execution order in every round and interleaving all four targets
+significantly reduces session drift, CPU thermal bias, and ordering artifacts.
 """
 
 import os
+import random
 import subprocess
 import time
 import urllib.request
 import numpy as np
 from scipy import stats
 
-REPS_NATIVE = 50
-REPS_WASM = 50
-REPS_DOCKER = 30
+REPS = 50
 
 native_fresh_results = []
 native_existing_results = []
 wasm_results = []
 docker_results = []
 
+# Pre-seed and cleanly checkpoint bench_seeded.db for Existing DB runs
 print("=" * 70)
-print(f"STARTING INTERLEAVED COLD-START BENCHMARK ({REPS_NATIVE} rounds)")
+print("INITIALIZING PRE-SEEDED DATABASE FOR EXISTING DB RUNS")
+print("=" * 70)
+subprocess.run(["rm", "-f", "bench_seeded.db", "bench_seeded.db-wal", "bench_seeded.db-shm"])
+cmd_init = "PORT=3000 DB_PATH=bench_seeded.db TARGET_NAME=native ./target/release/axum_adapter"
+subprocess.check_output(["./target/bench_cold_start", cmd_init, "3000", "1"])
+subprocess.run(["sqlite3", "bench_seeded.db", "PRAGMA wal_checkpoint(TRUNCATE);"], check=True)
+print("bench_seeded.db initialized, 10 items seeded, and WAL cleanly checkpointed.\n")
+
+def run_native_fresh():
+    subprocess.run(["rm", "-f", "bench_fresh.db", "bench_fresh.db-wal", "bench_fresh.db-shm"])
+    cmd = "PORT=3000 DB_PATH=bench_fresh.db TARGET_NAME=native ./target/release/axum_adapter"
+    out = subprocess.check_output(["./target/bench_cold_start", cmd, "3000", "1"]).decode().strip()
+    return float(out)
+
+def run_native_existing():
+    cmd = "PORT=3000 DB_PATH=bench_seeded.db TARGET_NAME=native ./target/release/axum_adapter"
+    out = subprocess.check_output(["./target/bench_cold_start", cmd, "3000", "1"]).decode().strip()
+    return float(out)
+
+def run_wasm():
+    cmd = "wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_adapter.cwasm"
+    out = subprocess.check_output(["./target/bench_cold_start", cmd, "3000", "1"]).decode().strip()
+    return float(out)
+
+def run_docker(round_idx):
+    start = time.perf_counter()
+    cname = f"cold_doc_rnd_{round_idx}_{random.randint(1000, 9999)}"
+    cmd_doc = ["docker", "run", "-d", "--rm", "--name", cname, "-p", "3002:3000", "wasm-bench-server:latest"]
+    subprocess.run(cmd_doc, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    url = "http://127.0.0.1:3002/health"
+    while time.perf_counter() - start < 15.0:
+        try:
+            with urllib.request.urlopen(url, timeout=0.5) as resp:
+                if resp.status == 200:
+                    break
+        except Exception:
+            time.sleep(0.005)
+    d_ms = (time.perf_counter() - start) * 1000.0
+    subprocess.run(["docker", "stop", cname], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(0.15)  # Allow container subsystem to settle
+    return d_ms
+
+print("=" * 70)
+print(f"STARTING RANDOMIZED-ORDER INTERLEAVED BENCHMARK ({REPS} rounds)")
 print("=" * 70)
 
-for r in range(1, REPS_NATIVE + 1):
-    # 1. Native: Fresh DB (table created + 10 items inserted in single transaction)
-    subprocess.run(["rm", "-f", "bench.db", "bench.db-wal", "bench.db-shm"])
-    cmd_native = "PORT=3000 TARGET_NAME=native ./target/release/axum_adapter"
-    out_fresh = subprocess.check_output(["./target/bench_cold_start", cmd_native, "3000", "1"]).decode().strip()
-    nf_ms = float(out_fresh)
-    native_fresh_results.append(nf_ms)
-    time.sleep(0.05)
+for r in range(1, REPS + 1):
+    # Prepare targets and shuffle order for this round
+    targets = [
+        ("native_fresh", run_native_fresh),
+        ("native_existing", run_native_existing),
+        ("wasm", run_wasm),
+        ("docker", lambda r=r: run_docker(r)),
+    ]
+    random.shuffle(targets)
+    round_order = [t[0] for t in targets]
 
-    # 2. Native: Existing DB (bench.db already present and populated by step 1)
-    out_exist = subprocess.check_output(["./target/bench_cold_start", cmd_native, "3000", "1"]).decode().strip()
-    ne_ms = float(out_exist)
-    native_existing_results.append(ne_ms)
-    time.sleep(0.05)
-
-    # 3. Wasmtime AOT (.cwasm pre-compiled component)
-    cmd_wasm = "wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_adapter.cwasm"
-    out_wasm = subprocess.check_output(["./target/bench_cold_start", cmd_wasm, "3000", "1"]).decode().strip()
-    w_ms = float(out_wasm)
-    wasm_results.append(w_ms)
-    time.sleep(0.05)
-
-    # 4. OCI Docker Container (rounds 1 to REPS_DOCKER)
-    doc_str = "N/A"
-    if r <= REPS_DOCKER:
-        start = time.perf_counter()
-        cname = f"cold_doc_round_{r}"
-        cmd_doc = ["docker", "run", "-d", "--rm", "--name", cname, "-p", "3002:3000", "wasm-bench-server:latest"]
-        subprocess.run(cmd_doc, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        url = "http://127.0.0.1:3002/health"
-        while time.perf_counter() - start < 15.0:
-            try:
-                with urllib.request.urlopen(url, timeout=0.5) as resp:
-                    if resp.status == 200:
-                        break
-            except Exception:
-                time.sleep(0.005)
-        d_ms = (time.perf_counter() - start) * 1000.0
-        subprocess.run(["docker", "stop", cname], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        docker_results.append(d_ms)
-        doc_str = f"{d_ms:.2f} ms"
+    round_timings = {}
+    for name, fn in targets:
+        val = fn()
+        round_timings[name] = val
         time.sleep(0.05)
 
-    print(f"Round {r:02d}: Native Fresh={nf_ms:6.2f} ms | Native Exist={ne_ms:6.2f} ms | Wasm={w_ms:6.2f} ms | Docker={doc_str}")
+    native_fresh_results.append(round_timings["native_fresh"])
+    native_existing_results.append(round_timings["native_existing"])
+    wasm_results.append(round_timings["wasm"])
+    docker_results.append(round_timings["docker"])
+
+    print(f"Round {r:02d} [{','.join([o[:4] for o in round_order])}]: Fresh={round_timings['native_fresh']:5.2f}ms | Exist={round_timings['native_existing']:5.2f}ms | Wasm={round_timings['wasm']:5.2f}ms | Docker={round_timings['docker']:6.2f}ms")
+
+# Clean up temp test DBs
+subprocess.run(["rm", "-f", "bench_fresh.db*", "bench_seeded.db*"])
 
 # Save raw output files
+os.makedirs("benchmarks/results", exist_ok=True)
 with open("benchmarks/results/cold_start_native_fresh.txt", "w") as f:
     for x in native_fresh_results:
         f.write(f"{x:.3f}\n")
@@ -93,7 +120,7 @@ with open("benchmarks/results/cold_start_docker.txt", "w") as f:
         f.write(f"{x:.3f}\n")
 
 print("\n" + "=" * 70)
-print("INTERLEAVED BENCHMARK SUMMARY")
+print("INTERLEAVED BENCHMARK SUMMARY (N=50 ALL TARGETS)")
 print("=" * 70)
 
 for name, res in [
@@ -104,7 +131,7 @@ for name, res in [
 ]:
     arr = np.array(res)
     q75, q25 = np.percentile(arr, [75, 25])
-    print(f"{name:22} | N={len(arr):2} | Median={np.median(arr):.2f} ms | IQR={q75-q25:.2f} ms | Mean={np.mean(arr):.2f} +/- {np.std(arr):.2f} ms | Min={min(arr):.2f} ms | Max={max(arr):.2f} ms")
+    print(f"{name:22} | N={len(arr):2} | Median={np.median(arr):.2f} ms | IQR={q75-q25:.2f} ms | Mean={np.mean(arr):.2f} +/- {np.std(arr, ddof=1):.2f} ms | Min={min(arr):.2f} ms | Max={max(arr):.2f} ms")
 
 # Statistical tests
 u_wf, p_wf = stats.mannwhitneyu(wasm_results, native_fresh_results, alternative="two-sided")

@@ -180,21 +180,21 @@ wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_ad
 All measurements below are collected from the automated test harness (`benchmarks/`) running on macOS ARM64.
 
 ### 1. Cold-Start Latency (Process Spawn $\to$ First HTTP 200 OK)
-*Measured via automated round-robin interleaved harness (`benchmarks/run_cold_interleaved.py`) executing Fresh DB, Existing DB, Wasmtime AOT, and Docker in each round to eliminate order and thermal bias:*
+*Measured via automated randomized-order interleaved harness (`benchmarks/run_cold_interleaved.py`) executing Fresh DB, Existing DB, Wasmtime AOT, and Docker in randomized order per round ($N=50$ for all targets) to reduce order, thermal, and background scheduling bias:*
 
 | Deployment Target | Sample Size ($N$) | Median | IQR | Mean $\pm$ StdDev | Min | Max |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Bare-Metal Native (Fresh DB)** | 50 | **9.26 ms** | 2.72 ms | $8.98 \pm 2.37\,\text{ms}$ | 5.92 ms | 21.57 ms |
-| **Bare-Metal Native (Existing DB)** | 50 | **10.97 ms** | 4.11 ms | $10.58 \pm 5.13\,\text{ms}$ | 5.89 ms | 42.70 ms |
-| **Wasmtime AOT (`.cwasm`)** | 50 | **24.59 ms** | 2.36 ms | $26.06 \pm 7.53\,\text{ms}$ | 20.70 ms | 56.39 ms |
-| **OCI Docker Container (macOS)** | 30 | **96.80 ms** | 8.50 ms | $98.22 \pm 9.49\,\text{ms}$ | 83.32 ms | 137.62 ms |
+| **Bare-Metal Native (Fresh DB)** | 50 | **9.08 ms** | 1.75 ms | $9.01 \pm 1.64\,\text{ms}$ | 5.76 ms | 12.94 ms |
+| **Bare-Metal Native (Existing DB)** | 50 | **9.55 ms** | 3.24 ms | $10.22 \pm 5.03\,\text{ms}$ | 5.12 ms | 42.03 ms |
+| **Wasmtime AOT (`.cwasm`)** | 50 | **26.85 ms** | 5.82 ms | $28.57 \pm 8.06\,\text{ms}$ | 19.46 ms | 63.40 ms |
+| **OCI Docker Container (macOS)** | 50 | **113.30 ms** | 12.02 ms | $113.57 \pm 11.31\,\text{ms}$ | 85.81 ms | 143.35 ms |
 
 *Two-sided Mann-Whitney $U$ test:*  
-* Wasm vs. Native (Fresh DB): $U = 2498.0, p = 7.97 \times 10^{-18}$, Cliff's Delta $\delta = 0.998$.  
-* Wasm vs. Native (Existing DB): $U = 2453.0, p = 1.13 \times 10^{-16}$, Cliff's Delta $\delta = 0.962$.  
-* Docker vs. Wasm: $U = 1500.0, p = 9.43 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
+* Wasm vs. Native (Fresh DB): $U = 2500.0, p = 7.06 \times 10^{-18}$, Cliff's Delta $\delta = 1.000$.  
+* Wasm vs. Native (Existing DB): $U = 2452.0, p = 1.20 \times 10^{-16}$, Cliff's Delta $\delta = 0.962$.  
+* Docker vs. Wasm: $U = 2500.0, p = 7.06 \times 10^{-18}$, Cliff's Delta $\delta = 1.000$.
 
-*Note on cold starts:* All targets were benchmarked in a unified interleaved loop (`benchmarks/run_cold_interleaved.py`). Across multiple sessions, Docker is consistently **$4.0\times$ to $4.8\times$ slower** than Wasmtime AOT, while Wasmtime operates within **$1.5\times$ to $2.9\times$** of native execution depending on session load and database state. For Native execution, we isolate both startup states: *Fresh DB* (database unlinked before launch; schema created and 10 baseline items inserted in a single transaction on boot) and *Existing DB* (database already created and seeded prior to launch). Wasm serves an in-memory collection because embedded SQLite requires POSIX threading and file locking primitives unavailable under `wasm32-wasip2`. Docker cold starts measure fresh container launch via Docker daemon lifecycle.
+*Note on cold starts:* All targets were benchmarked in a unified randomized-order interleaved loop (`benchmarks/run_cold_interleaved.py`). Across multiple sessions, Docker is consistently **$3.9\times$ to $4.8\times$ slower** than Wasmtime AOT (Docker medians 93--113 ms; individual runs 81--143 ms), while Wasmtime operates within **$1.5\times$ to $3.0\times$** of native execution depending on session load and database state ($2.81\times$ to $2.96\times$ in this interleaved run). For Native execution, we isolate both startup states: *Fresh DB* (database unlinked before launch; schema created and 10 baseline items inserted on boot) and *Existing DB* (pre-seeded database with a clean WAL checkpoint prior to launch). Wasm serves an in-memory collection because bundled `rusqlite` failed to compile for `wasm32-wasip2` due to C toolchain and sysroot cross-compilation incompatibilities. Docker cold starts measure fresh container launch via Docker daemon lifecycle.
 
 ### 2. Steady-State Concurrency Sweep (Throughput & Latency)
 *Measured via closed-loop `wrk` across 3 independent trials per configuration (5s warmup, 10s sample):*
