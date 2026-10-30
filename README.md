@@ -184,15 +184,17 @@ All measurements below are collected from the automated test harness (`benchmark
 
 | Deployment Target | Sample Size ($N$) | Median | IQR | Mean $\pm$ StdDev | Min | Max |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Bare-Metal Native** | 50 | **15.04 ms** | 1.56 ms | $16.61 \pm 9.56\,\text{ms}$ | 9.29 ms | 75.86 ms |
-| **Wasmtime AOT (`.cwasm`)** | 50 | **22.33 ms** | 0.96 ms | $22.84 \pm 3.71\,\text{ms}$ | 18.48 ms | 44.32 ms |
-| **OCI Docker Container (macOS)** | 30 | **104.45 ms** | 8.41 ms | $104.58 \pm 8.42\,\text{ms}$ | 88.56 ms | 124.84 ms |
+| **Bare-Metal Native (Fresh DB)** | 50 | **8.46 ms** | 0.71 ms | $9.87 \pm 7.63\,\text{ms}$ | 6.39 ms | 61.66 ms |
+| **Bare-Metal Native (Existing DB)** | 50 | **11.25 ms** | 1.79 ms | $11.76 \pm 4.49\,\text{ms}$ | 9.06 ms | 41.88 ms |
+| **Wasmtime AOT (`.cwasm`)** | 50 | **20.56 ms** | 0.39 ms | $21.13 \pm 4.95\,\text{ms}$ | 16.84 ms | 55.01 ms |
+| **OCI Docker Container (macOS)** | 30 | **98.56 ms** | 8.29 ms | $102.98 \pm 12.51\,\text{ms}$ | 90.19 ms | 142.83 ms |
 
 *Two-sided Mann-Whitney $U$ test:*  
-* Wasm vs. Native: $U = 2400.0, p = 2.29 \times 10^{-15}$, Cliff's Delta $\delta = 0.920$.  
-* Docker vs. Wasm: $U = 1500.0, p = 9.43 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
+* Wasm vs. Native (Fresh DB): $U = 2449.0, p = 1.43 \times 10^{-16}$, Cliff's Delta $\delta = 0.959$.  
+* Wasm vs. Native (Existing DB): $U = 2451.0, p = 1.27 \times 10^{-16}$, Cliff's Delta $\delta = 0.961$.  
+* Docker vs. Wasm: $U = 1500.0, p = 9.42 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
 
-*Note on cold starts:* All three targets were benchmarked back-to-back in the same session. Native and Docker cold-start latencies incorporate storage initialization (where SQLite schema creation and 10 baseline items are verified/inserted inside a single transaction on startup). Wasm serves an in-memory collection without local SQLite overhead. Docker measurements utilize `measure_docker_cold.py` polling via `urllib.request` over the Docker daemon lifecycle.
+*Note on cold starts:* All targets were benchmarked back-to-back in the same session. For Native execution, we explicitly isolate both database startup states: *Fresh DB* (database unlinked before launch; schema created and 10 baseline items inserted in a single transaction on boot) and *Existing DB* (database already created and seeded prior to launch). Wasm serves an in-memory collection without local SQLite overhead. Docker cold starts measure fresh container launch via `measure_docker_cold.py` polling via `urllib.request` over the Docker daemon lifecycle.
 
 ### 2. Steady-State Concurrency Sweep (Throughput & Latency)
 *Measured via closed-loop `wrk` across 3 independent trials per configuration (5s warmup, 10s sample):*
@@ -224,7 +226,7 @@ All measurements below are collected from the automated test harness (`benchmark
 ## ⚖️ Architectural Decision Heuristics
 
 * **Deploy WebAssembly When:**
-  * **Workloads are ephemeral or bursty:** Wasm's **19.28 ms** cold start eliminates container startup stalls in serverless environments.
+  * **Workloads are ephemeral or bursty:** Wasm's **20.56 ms** cold start eliminates container startup stalls in serverless environments.
   * **Executing untrusted multitenant plugins:** In-process SFI and capability validation provide robust security without virtual machine overhead.
   * **Binary storage constraints are tight:** Compact `.cwasm` artifacts (428 KB) allow efficient distribution to edge nodes.
 * **Retain Docker Containers or Native Binaries When:**
