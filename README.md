@@ -180,19 +180,19 @@ wasmtime serve --allow-precompiled -S cli=y --addr 127.0.0.1:3000 target/wasi_ad
 All measurements below are collected from the automated test harness (`benchmarks/`) running on macOS ARM64.
 
 ### 1. Cold-Start Latency (Process Spawn $\to$ First HTTP 200 OK)
-*Measured via compiled socket-polling harness (`bench_cold_start.rs` for Native and Wasm) and container daemon polling (`measure_docker_cold.py` for Docker):*
+*Measured via compiled socket-polling harness (`bench_cold_start.rs` for Native and Wasm) and container daemon polling (`measure_docker_cold.py` for Docker) across a unified single-session run:*
 
 | Deployment Target | Sample Size ($N$) | Median | IQR | Mean $\pm$ StdDev | Min | Max |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Bare-Metal Native** | 50 | **15.49 ms** | 1.15 ms | $15.88 \pm 4.74\,\text{ms}$ | 8.65 ms | 46.27 ms |
-| **Wasmtime AOT (`.cwasm`)** | 50 | **19.28 ms** | 2.90 ms | $19.99 \pm 4.87\,\text{ms}$ | 16.67 ms | 51.14 ms |
-| **OCI Docker Container (macOS)** | 30 | **107.39 ms** | 6.34 ms | $106.94 \pm 5.33\,\text{ms}$ | 97.62 ms | 118.85 ms |
+| **Bare-Metal Native** | 50 | **15.04 ms** | 1.56 ms | $16.61 \pm 9.56\,\text{ms}$ | 9.29 ms | 75.86 ms |
+| **Wasmtime AOT (`.cwasm`)** | 50 | **22.33 ms** | 0.96 ms | $22.84 \pm 3.71\,\text{ms}$ | 18.48 ms | 44.32 ms |
+| **OCI Docker Container (macOS)** | 30 | **104.45 ms** | 8.41 ms | $104.58 \pm 8.42\,\text{ms}$ | 88.56 ms | 124.84 ms |
 
 *Two-sided Mann-Whitney $U$ test:*  
-* Wasm vs. Native: $U = 2406.0, p = 1.64 \times 10^{-15}$, Cliff's Delta $\delta = 0.925$.  
+* Wasm vs. Native: $U = 2400.0, p = 2.29 \times 10^{-15}$, Cliff's Delta $\delta = 0.920$.  
 * Docker vs. Wasm: $U = 1500.0, p = 9.43 \times 10^{-14}$, Cliff's Delta $\delta = 1.000$.
 
-*Note on cold starts:* Native and Docker cold-start latencies reflect the auto-seeded storage build (where the backend checks/seeds 10 initial SQLite items on startup before serving requests). Docker measurements utilize `measure_docker_cold.py` polling via `urllib.request` over the Docker daemon lifecycle.
+*Note on cold starts:* All three targets were benchmarked back-to-back in the same session. Native and Docker cold-start latencies incorporate storage initialization (where SQLite schema creation and 10 baseline items are verified/inserted inside a single transaction on startup). Wasm serves an in-memory collection without local SQLite overhead. Docker measurements utilize `measure_docker_cold.py` polling via `urllib.request` over the Docker daemon lifecycle.
 
 ### 2. Steady-State Concurrency Sweep (Throughput & Latency)
 *Measured via closed-loop `wrk` across 3 independent trials per configuration (5s warmup, 10s sample):*
@@ -211,11 +211,11 @@ All measurements below are collected from the automated test harness (`benchmark
 
 ### 3. Memory Footprint (RSS) and Artifact Size
 
-| Target | Idle Memory | Under-Load Memory (50 Conn) | Artifact Size | Description |
+| Target | Idle Memory | Under-Load Memory (50 Conn, `/health`) | Artifact Size | Description |
 |---|:---:|:---:|:---:|---|
-| **Bare-Metal Native** | 4.02 MB | 8.41 MB | 4.5 MB | Standalone Mach-O binary |
-| **Wasmtime AOT** | 8.89 MB | 17.31 MB | 0.43 MB (.cwasm) / 0.16 MB (.wasm) | Pre-compiled component |
-| **OCI Docker Container** | ~1.46 MB (cgroup) | ~3.95 MB (cgroup) | 32.1 MB | Debian slim image |
+| **Bare-Metal Native** | 4.02 MB | 8.08 MB | 4.5 MB | Standalone Mach-O binary |
+| **Wasmtime AOT** | 8.92 MB | 16.44 MB | 0.43 MB (.cwasm) / 0.16 MB (.wasm) | Pre-compiled component |
+| **OCI Docker Container** | ~1.42 MB (cgroup) | ~3.49 MB (cgroup) | 32.1 MB | Debian slim image |
 
 *Note on memory measurements:* Native and Wasmtime figures represent process Resident Set Size (RSS). Docker figures represent internal cgroup accounting (`docker stats`) reported by the Linux container engine, excluding the host hypervisor and Docker Desktop baseline. "Under-Load Memory" is sampled immediately after the sustained 50-connection `wrk` load test concludes on `/health` (quiescent peak footprint).
 

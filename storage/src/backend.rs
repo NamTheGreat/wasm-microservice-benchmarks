@@ -19,7 +19,7 @@ impl StorageBackend {
     /// `wal = true` enables WAL journal mode + NORMAL synchronous.
     /// `wal = false` leaves the default DELETE journal mode for WASI compat.
     pub fn open(path: &str, wal: bool) -> Result<Self, StorageError> {
-        let conn = Connection::open(path)?;
+        let mut conn = Connection::open(path)?;
 
         if wal {
             conn.execute_batch(
@@ -40,12 +40,14 @@ impl StorageBackend {
         // Ensure 10 baseline seeded items exist for consistent multi-target benchmarking
         let count: i64 = conn.query_row("SELECT count(*) FROM items", [], |r| r.get(0))?;
         if count == 0 {
-            for i in 1..=10 {
-                conn.execute(
-                    "INSERT INTO items (id, name, value, created_at) VALUES (?1, ?2, ?3, '2026-10-09T00:00:00Z')",
-                    params![i as i64, format!("item-{}", i), (i as f64) * 10.0],
-                )?;
+            let tx = conn.transaction()?;
+            {
+                let mut stmt = tx.prepare("INSERT INTO items (id, name, value, created_at) VALUES (?1, ?2, ?3, '2026-10-09T00:00:00Z')")?;
+                for i in 1..=10 {
+                    stmt.execute(params![i as i64, format!("item-{}", i), (i as f64) * 10.0])?;
+                }
             }
+            tx.commit()?;
         }
 
         Ok(Self { conn })
